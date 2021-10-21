@@ -165,7 +165,6 @@ def stop():
     client.run_async_program(prog)
 
 def load_plugin():
-    return
     get_workbench().add_command(command_id="run_th",
                                 menu_name="tools",
                                 command_label="Run on Thymio",

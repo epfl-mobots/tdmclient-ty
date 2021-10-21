@@ -17,6 +17,7 @@ setup(
     packages=["thonnycontrib.tdmclient_ty"],
     description="Communication with Thymio II robot from Thonny via the Thymio Device Manager",
     long_description=long_description,
+    long_description_content_type="text/markdown",
     url="https://github.com/epfl-mobots/tdmclient-ty",
     install_requires=[
         "tdmclient",
