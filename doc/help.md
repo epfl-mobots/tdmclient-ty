@@ -10,7 +10,7 @@ In Thonny, select the menu Tools>Manage Packages, type _tdmclient_ty_ in the sea
 
 Make sure you also have [Thymio Suite](https://www.thymio.org/program/) installed on your computer.
 
-## Use
+## Usage
 
 Connect a robot to your computer via a USB cable or the RF dongle and launch Thymio Suite. In Thymio Suite, you can click the Aseba Studio icon to check that the Thymio is recognized, and, also optionally, start Aseba Studio (select the robot and click the button "Program with Aseba Studio"). Only one client can control the robot at the same time to change a variable or run a program. Either don't start Aseba Studio or unlock the robot by clicking the little lock icon in the tab title near the top left corner of the Aseba Studio window.
 
