@@ -1,4 +1,4 @@
-# This file is part of tdmclient.
+# This file is part of tdmclient-ty.
 # Copyright 2021 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE,
 # Miniature Mobile Robots group, Switzerland
 # Author: Yves Piguet
@@ -7,7 +7,7 @@
 
 from thonny import get_workbench, get_shell
 from tdmclient import ClientAsync, aw
-from tdmclient.atranspiler import ATranspiler
+from tdmclient.atranspiler import ATranspiler, TranspilerError
 from tdmclient.module_thymio import ModuleThymio
 from tdmclient.module_clock import ModuleClock
 
@@ -62,7 +62,11 @@ def print_transpiled_code():
     transpiler.set_preamble("""from thymio import *
 """)
     transpiler.set_source(program)
-    transpiler.transpile()
+    try:
+        transpiler.transpile()
+    except TranspilerError as error:
+        print_to_shell(f"\n{error.message}\n", stderr=True)
+        return
     program = transpiler.get_output()
 
     # display in the shell
@@ -106,7 +110,11 @@ def run():
     transpiler.set_preamble("""from thymio import *
 """)
     transpiler.set_source(program)
-    transpiler.transpile()
+    try:
+        transpiler.transpile()
+    except TranspilerError as error:
+        print_to_shell(f"\n{error.message}\n", stderr=True)
+        return
     program = transpiler.get_output()
 
     events = []
