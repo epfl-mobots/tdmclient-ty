@@ -48,6 +48,9 @@ def print_to_shell(str, stderr=False):
     text._insert_text_directly(str, ("io", "stderr") if stderr else ("io",))
     text.see("end")
 
+def print_error(str):
+    get_shell().print_error(str)
+
 def print_transpiled_code():
     # get source code
     program = get_source_code()
@@ -65,7 +68,7 @@ def print_transpiled_code():
     try:
         transpiler.transpile()
     except TranspilerError as error:
-        print_to_shell(f"\n{error.message}\n", stderr=True)
+        print_error(f"\n{error.message}\n")
         return
     program = transpiler.get_output()
 
@@ -113,7 +116,7 @@ def run():
     try:
         transpiler.transpile()
     except TranspilerError as error:
-        print_to_shell(f"\n{error.message}\n", stderr=True)
+        print_error(f"\n{error.message}\n")
         return
     program = transpiler.get_output()
 
@@ -145,8 +148,7 @@ def run():
             await node.register_events(events)
         error = await node.compile(program)
         if error is not None:
-            print_to_shell(f"Compilation error: {error['error_msg']}\n",
-                           stderr=True)
+            print_error(f"Compilation error: {error['error_msg']}\n")
         else:
             client.clear_events_received_listeners()
             if len(events) > 0:
@@ -154,8 +156,7 @@ def run():
                 await node.watch(events=True)
             error = await node.run()
             if error is not None:
-                print_to_shell(f"Run error {error['error_code']}\n",
-                               stderr=True)
+                print_error(f"Run error {error['error_code']}\n")
         error = await node.set_scratchpad(program)
         if error is not None:
             pass  # ignore
@@ -166,8 +167,7 @@ def stop():
     async def prog():
         error = await node.stop()
         if error is not None:
-            print_to_shell(f"Stop error {error['error_code']}\n",
-                           stderr=True)
+            print_error(f"Stop error {error['error_code']}\n")
 
     connect()
     client.run_async_program(prog)
