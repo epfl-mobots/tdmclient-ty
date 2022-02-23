@@ -68,7 +68,7 @@ def print_transpiled_code():
     try:
         transpiler.transpile()
     except TranspilerError as error:
-        print_error(f"\n{error.message}\n")
+        print_error(f"\n{error}\n")
         return
     program = transpiler.get_output()
 
@@ -116,7 +116,7 @@ def run():
     try:
         transpiler.transpile()
     except TranspilerError as error:
-        print_error(f"\n{error.message}\n")
+        print_error(f"\n{error}\n")
         return
     program = transpiler.get_output()
 
