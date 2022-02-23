@@ -4,6 +4,8 @@ Notable changes of tdmclient-ty. Release versions refer to [https://pypi.org/pro
 
 ## [Unreleased]
 
+## [0.1.2] - 2022-02-23
+
 ### Added
 
 - Line number in error messages
