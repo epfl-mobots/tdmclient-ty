@@ -4,6 +4,11 @@ Notable changes of tdmclient-ty. Release versions refer to [https://pypi.org/pro
 
 ## [Unreleased]
 
+### Added
+
+- Line number in error messages
+- Error message in the Shell panel when the program cannot be executed on the robot
+
 ## [0.1.1] - 2021-11-04
 
 ### Added

@@ -148,7 +148,12 @@ def run():
             await node.register_events(events)
         error = await node.compile(program)
         if error is not None:
-            print_error(f"Compilation error: {error['error_msg']}\n")
+            if "error_msg" in error:
+                print_error(f"Compilation error: {error['error_msg']}\n")
+            elif "error_code" in error:
+                print_error(f"Cannot run program (error {error['error_code']})")
+            else:
+                print_error(f"Cannot run program\n")
         else:
             client.clear_events_received_listeners()
             if len(events) > 0:
