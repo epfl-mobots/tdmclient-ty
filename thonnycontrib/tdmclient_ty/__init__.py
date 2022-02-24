@@ -10,6 +10,7 @@ from tdmclient import ClientAsync, aw
 from tdmclient.atranspiler import ATranspiler, TranspilerError
 from tdmclient.module_thymio import ModuleThymio
 from tdmclient.module_clock import ModuleClock
+from tdmclient.atranspiler_warnings import missing_global_decl
 
 import tkinter
 import sys
@@ -51,7 +52,7 @@ def print_to_shell(str, stderr=False):
 def print_error(str):
     get_shell().print_error(str)
 
-def print_transpiled_code():
+def get_transpiled_code(warning_missing_global=False):
     # get source code
     program = get_source_code()
 
@@ -65,15 +66,29 @@ def print_transpiled_code():
     transpiler.set_preamble("""from thymio import *
 """)
     transpiler.set_source(program)
+    transpiler.transpile()
+
+    # warnings
+    if warning_missing_global:
+        w = missing_global_decl(transpiler)
+        if len(w) > 0:
+            print_error("\n")
+            for function_name in w:
+                for var_name in w[function_name]:
+                    print_error(f"Warning: in function '{function_name}', '{var_name}' hides global variable")
+
+    return transpiler.get_output(), transpiler
+
+def print_transpiled_code():
+    # get source code transpiled to Aseba
     try:
-        transpiler.transpile()
+        program_aseba, _ = get_transpiled_code(warning_missing_global=True)
     except TranspilerError as error:
         print_error(f"\n{error}\n")
         return
-    program = transpiler.get_output()
 
     # display in the shell
-    print_to_shell("\n" + program)
+    print_to_shell("\n" + program_aseba)
 
 print_statements = None
 exit_received = False
@@ -100,25 +115,12 @@ def on_event_received(node, event_name, event_data):
         print_to_shell(event_name + "".join(["," + str(d) for d in event_data]) + "\n")
 
 def run():
-    # get source code
-    program = get_source_code()
-
-    # transpile from Python to Aseba
-    transpiler = ATranspiler()
-    modules = {
-        "thymio": ModuleThymio(transpiler),
-        "clock": ModuleClock(transpiler),
-    }
-    transpiler.modules = {**transpiler.modules, **modules}
-    transpiler.set_preamble("""from thymio import *
-""")
-    transpiler.set_source(program)
+    # get source code transpiled to Aseba
     try:
-        transpiler.transpile()
+        program_aseba, transpiler = get_transpiled_code(warning_missing_global=True)
     except TranspilerError as error:
         print_error(f"\n{error}\n")
         return
-    program = transpiler.get_output()
 
     events = []
 
@@ -146,7 +148,7 @@ def run():
         if len(events) > 0:
             events = await node.filter_out_vm_events(events)
             await node.register_events(events)
-        error = await node.compile(program)
+        error = await node.compile(program_aseba)
         if error is not None:
             if "error_msg" in error:
                 print_error(f"Compilation error: {error['error_msg']}\n")
@@ -162,7 +164,7 @@ def run():
             error = await node.run()
             if error is not None:
                 print_error(f"Run error {error['error_code']}\n")
-        error = await node.set_scratchpad(program)
+        error = await node.set_scratchpad(program_aseba)
         if error is not None:
             pass  # ignore
 
