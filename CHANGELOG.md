@@ -4,7 +4,10 @@ Notable changes of tdmclient-ty. Release versions refer to [https://pypi.org/pro
 
 ## [Unreleased]
 
+### Added
+
 - Warnings for local variables which hide global variables (a declaration as global could be missing)
+- `NameError` exceptions, raised by the transpiler e.g. if the Aseba dot syntax is used instead of names with underscores, are displayed in the Shell panel
 
 ## [0.1.2] - 2022-02-23
 

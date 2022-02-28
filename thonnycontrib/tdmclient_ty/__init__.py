@@ -83,7 +83,7 @@ def print_transpiled_code():
     # get source code transpiled to Aseba
     try:
         program_aseba, _ = get_transpiled_code(warning_missing_global=True)
-    except TranspilerError as error:
+    except (TranspilerError, NameError) as error:
         print_error(f"\n{error}\n")
         return
 
