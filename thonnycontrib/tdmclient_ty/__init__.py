@@ -153,7 +153,10 @@ def run():
             if "error_msg" in error:
                 print_error(f"Compilation error: {error['error_msg']}\n")
             elif "error_code" in error:
-                print_error(f"Cannot run program (error {error['error_code']})")
+                if error["error_code"] in ClientAsync.ERROR_MSG_DICT:
+                    print_error(f"Cannot run program (error {error['error_code']})")
+                else:
+                    print_error(f"Cannot run program (error {error['error_code']})")
             else:
                 print_error(f"Cannot run program\n")
         else:
