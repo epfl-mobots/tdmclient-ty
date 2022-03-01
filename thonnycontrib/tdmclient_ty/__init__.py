@@ -191,6 +191,7 @@ def load_plugin():
     get_workbench().add_command(command_id="transpile_th",
                                 menu_name="tools",
                                 command_label="Transpile Program",
+                                default_sequence="<Control-Shift-T>",
                                 handler=print_transpiled_code)
     get_workbench().add_command(command_id="stop_th",
                                 menu_name="tools",
