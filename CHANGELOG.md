@@ -11,6 +11,7 @@ Notable changes of tdmclient-ty. Release versions refer to [https://pypi.org/pro
 - In error messages, code numbers are replaced by messages when their meaning is known
 - Shortcut Control-Shift-T for menu command Tools>Transpile Program
 - Menu commands moved to a separate "Thymio" menu
+- Menu entry "Disconnect" disabled when the robot is not connected
 
 ### Fixed
 

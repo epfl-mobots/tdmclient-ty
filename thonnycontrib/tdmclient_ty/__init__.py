@@ -214,4 +214,5 @@ def load_plugin():
     get_workbench().add_command(command_id="unlock_th",
                                 menu_name="Thymio",
                                 command_label="Unlock",
-                                handler=disconnect)
+                                handler=disconnect,
+                                tester=lambda: client is not None)
