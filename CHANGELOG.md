@@ -10,6 +10,7 @@ Notable changes of tdmclient-ty. Release versions refer to [https://pypi.org/pro
 - `NameError` exceptions, raised by the transpiler e.g. if the Aseba dot syntax is used instead of names with underscores, are displayed in the Shell panel
 - In error messages, code numbers are replaced by messages when their meaning is known
 - Shortcut Control-Shift-T for menu command Tools>Transpile Program
+- Menu commands moved to a separate "Thymio" menu
 
 ### Fixed
 

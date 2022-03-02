@@ -197,21 +197,21 @@ def stop():
 
 def load_plugin():
     get_workbench().add_command(command_id="run_th",
-                                menu_name="tools",
-                                command_label="Run on Thymio",
+                                menu_name="Thymio",
+                                command_label="Run",
                                 default_sequence="<Control-Shift-R>",
                                 handler=run)
     get_workbench().add_command(command_id="transpile_th",
-                                menu_name="tools",
+                                menu_name="Thymio",
                                 command_label="Transpile Program",
                                 default_sequence="<Control-Shift-T>",
                                 handler=print_transpiled_code)
     get_workbench().add_command(command_id="stop_th",
-                                menu_name="tools",
-                                command_label="Stop Thymio",
+                                menu_name="Thymio",
+                                command_label="Stop",
                                 default_sequence="<Control-Shift-space>",
                                 handler=stop)
     get_workbench().add_command(command_id="unlock_th",
-                                menu_name="tools",
-                                command_label="Unlock Thymio",
+                                menu_name="Thymio",
+                                command_label="Unlock",
                                 handler=disconnect)
