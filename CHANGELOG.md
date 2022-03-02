@@ -11,6 +11,10 @@ Notable changes of tdmclient-ty. Release versions refer to [https://pypi.org/pro
 - In error messages, code numbers are replaced by messages when their meaning is known
 - Shortcut Control-Shift-T for menu command Tools>Transpile Program
 
+### Fixed
+
+- Robot disconnections and reconnections
+
 ## [0.1.2] - 2022-02-23
 
 ### Added

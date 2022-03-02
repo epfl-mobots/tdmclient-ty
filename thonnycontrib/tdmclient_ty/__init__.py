@@ -22,7 +22,11 @@ def connect():
     global client, node
     if client is None:
         client = ClientAsync()
-        node = aw(client.wait_for_node())
+        node = aw(client.wait_for_node(timeout=5))
+        if node is None:
+            print_error("Cannot connect to robot")
+            client = None
+            return
         aw(node.lock())
         get_workbench().after(100, process_incoming_messages)  # schedule after 100 ms
 
@@ -49,8 +53,8 @@ def print_to_shell(str, stderr=False):
     text._insert_text_directly(str, ("io", "stderr") if stderr else ("io",))
     text.see("end")
 
-def print_error(str):
-    get_shell().print_error(str)
+def print_error(*args):
+    get_shell().print_error(" ".join([str(arg) for arg in args]))
 
 def get_transpiled_code(warning_missing_global=False):
     # get source code
@@ -75,7 +79,7 @@ def get_transpiled_code(warning_missing_global=False):
             print_error("\n")
             for function_name in w:
                 for var_name in w[function_name]:
-                    print_error(f"Warning: in function '{function_name}', '{var_name}' hides global variable")
+                    print_error(f"Warning: in function '{function_name}', '{var_name}' hides global variable\n")
 
     return transpiler.get_output(), transpiler
 
@@ -141,6 +145,8 @@ def run():
 
     # make sure we're connected
     connect()
+    if client is None:
+        return
 
     # run
     async def prog():
@@ -154,11 +160,12 @@ def run():
                 print_error(f"Compilation error: {error['error_msg']}\n")
             elif "error_code" in error:
                 if error["error_code"] in ClientAsync.ERROR_MSG_DICT:
-                    print_error(f"Cannot run program (error {error['error_code']})")
+                    print_error(f"Cannot run program ({ClientAsync.ERROR_MSG_DICT[error['error_code']]})\n")
                 else:
-                    print_error(f"Cannot run program (error {error['error_code']})")
+                    print_error(f"Cannot run program (error {error['error_code']})\n")
             else:
                 print_error(f"Cannot run program\n")
+            disconnect()  # to attempt to reconnect next time
         else:
             client.clear_events_received_listeners()
             if len(events) > 0:
@@ -167,9 +174,11 @@ def run():
             error = await node.run()
             if error is not None:
                 print_error(f"Run error {error['error_code']}\n")
-        error = await node.set_scratchpad(program_aseba)
-        if error is not None:
-            pass  # ignore
+                disconnect()  # to attempt to reconnect next time
+            else:
+                error = await node.set_scratchpad(program_aseba)
+                if error is not None:
+                    pass  # ignore
 
     client.run_async_program(prog)
 
@@ -178,8 +187,12 @@ def stop():
         error = await node.stop()
         if error is not None:
             print_error(f"Stop error {error['error_code']}\n")
+            disconnect()  # to attempt to reconnect next time
 
     connect()
+    if client is None:
+        return
+
     client.run_async_program(prog)
 
 def load_plugin():
