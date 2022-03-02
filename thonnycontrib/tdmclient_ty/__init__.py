@@ -6,6 +6,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 from thonny import get_workbench, get_shell
+from thonny.common import TextRange
+
 from tdmclient import ClientAsync, aw
 from tdmclient.atranspiler import ATranspiler, TranspilerError
 from tdmclient.module_thymio import ModuleThymio
@@ -56,6 +58,15 @@ def print_to_shell(str, stderr=False):
 def print_error(*args):
     get_shell().print_error(" ".join([str(arg) for arg in args]))
 
+def print_source_code_lineno(lineno, text=None):
+    editor = get_workbench().get_editor_notebook().get_current_editor()
+    code_view = editor.get_code_view()
+
+    def click_select_line(event):
+        code_view.select_range(TextRange(lineno, 0, lineno + 1, 0))
+
+    get_shell().insert_command_link(text or f"line {lineno}", click_select_line)
+
 def get_transpiled_code(warning_missing_global=False):
     # get source code
     program = get_source_code()
@@ -87,8 +98,13 @@ def print_transpiled_code():
     # get source code transpiled to Aseba
     try:
         program_aseba, _ = get_transpiled_code(warning_missing_global=True)
-    except (TranspilerError, NameError) as error:
-        print_error(f"\n{error}\n")
+    except TranspilerError as error:
+        print_error(f"\nError: {error.message}\n")
+        print_to_shell("    ")
+        print_source_code_lineno(error.lineno, f"Line {error.lineno}\n")
+        return
+    except NameError as error:
+        print_error(f"\nError: {error}\n")
         return
 
     # display in the shell
@@ -123,7 +139,12 @@ def run():
     try:
         program_aseba, transpiler = get_transpiled_code(warning_missing_global=True)
     except TranspilerError as error:
-        print_error(f"\n{error}\n")
+        print_error(f"\nError: {error.message}\n")
+        print_to_shell("    ")
+        print_source_code_lineno(error.lineno, f"Line {error.lineno}\n")
+        return
+    except NameError as error:
+        print_error(f"\nError: {error}\n")
         return
 
     events = []
