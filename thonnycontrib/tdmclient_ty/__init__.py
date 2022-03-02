@@ -89,8 +89,10 @@ def get_transpiled_code(warning_missing_global=False):
         if len(w) > 0:
             print_error("\n")
             for function_name in w:
-                for var_name in w[function_name]:
-                    print_error(f"Warning: in function '{function_name}', '{var_name}' hides global variable\n")
+                print_error(f"""Warning: in function '{function_name}', redefining variable{"s" if len(w[function_name]) > 1 else ""} {", ".join([f"'{var_name}'" for var_name in w[function_name]])} from outer scope\n""")
+                lineno = transpiler.context_top.functions[function_name].function_def.lineno
+                print_to_shell("    ")
+                print_source_code_lineno(lineno, f"Line {lineno}\n")
 
     return transpiler.get_output(), transpiler
 
