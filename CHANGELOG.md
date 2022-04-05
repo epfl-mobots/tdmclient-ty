@@ -4,6 +4,8 @@ Notable changes of tdmclient-ty. Release versions refer to [https://pypi.org/pro
 
 ## [Unreleased]
 
+## [0.1.3] - 2022-04-05
+
 ### Added
 
 - Warnings for local variables which hide global variables (a declaration as global could be missing)
