@@ -16,7 +16,7 @@ python3 -c "import thonny; thonny.launch()"
 
 ## Patching commands
 
-Commands are stored in `get_workbench()._commands` with `get_workbench().add_command`. To patch a command easily, e.g. to run a script either on the Thymio II if the file suffix is `.pythii` or as usual for any other suffix, we've defined the following function.
+Commands are stored in `get_workbench()._commands` with `get_workbench().add_command`. To patch a command easily, e.g. to run a script either on the Thymio II if the file suffix is `.pythii` or as usual for any other suffix, we've defined the following functions.
 ```py
 def patch_command(command_id, patched_handler):
     """Replace the handler of a command specified by its id with a function
@@ -30,6 +30,12 @@ def patch_command(command_id, patched_handler):
         }
         for c in workbench._commands
     ]
+
+def patch(command_id):
+    def register(fun):
+        patch_command(command_id, fun)
+        return fun
+    return register
 ```
 
-Its arguments are the command id and a new handler function which has a single argument, the original dict in `_commands` (the original `**kwargs` passed to `add_command`).
+The arguments of `patch_command` are the command id and a new handler function which has a single argument, the original dict in `_commands` (the original `**kwargs` passed to `add_command`). Or just prepend the function decorator `patch("command_id")` to the patched function definition.

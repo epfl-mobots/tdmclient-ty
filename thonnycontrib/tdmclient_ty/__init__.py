@@ -14,11 +14,9 @@ from tdmclient.module_thymio import ModuleThymio
 from tdmclient.module_clock import ModuleClock
 from tdmclient.atranspiler_warnings import missing_global_decl
 
-import tkinter
-import sys
-
 client = None
 node = None
+
 
 def connect():
     global client, node
@@ -32,6 +30,7 @@ def connect():
         aw(node.lock())
         get_workbench().after(100, process_incoming_messages)  # schedule after 100 ms
 
+
 def disconnect():
     global client, node
     if client is not None:
@@ -39,10 +38,12 @@ def disconnect():
         node = None
         client = None
 
+
 def process_incoming_messages():
     if client is not None:
         client.process_waiting_messages()
         get_workbench().after(100, process_incoming_messages)  # reschedule after 100 ms
+
 
 def get_source_code():
     editor = get_workbench().get_editor_notebook().get_current_editor()
@@ -50,17 +51,21 @@ def get_source_code():
     source_code = str(code_view.get_content_as_bytes(), "utf-8")
     return source_code
 
+
 def get_filename():
     editor = get_workbench().get_editor_notebook().get_current_editor()
     return editor.get_filename()
+
 
 def print_to_shell(str, stderr=False):
     text = get_shell().text
     text._insert_text_directly(str, ("io", "stderr") if stderr else ("io",))
     text.see("end")
 
+
 def print_error(*args):
     get_shell().print_error(" ".join([str(arg) for arg in args]))
+
 
 def print_source_code_lineno(lineno, text=None):
     editor = get_workbench().get_editor_notebook().get_current_editor()
@@ -70,6 +75,7 @@ def print_source_code_lineno(lineno, text=None):
         code_view.select_range(TextRange(lineno, 0, lineno + 1, 0))
 
     get_shell().insert_command_link(text or f"line {lineno}", click_select_line)
+
 
 def get_transpiled_code(warning_missing_global=False):
     # get source code
@@ -100,6 +106,7 @@ def get_transpiled_code(warning_missing_global=False):
 
     return transpiler.get_output(), transpiler
 
+
 def print_transpiled_code():
     # get source code transpiled to Aseba
     try:
@@ -116,9 +123,11 @@ def print_transpiled_code():
     # display in the shell
     print_to_shell("\n" + program_aseba)
 
+
 print_statements = None
 exit_received = False
 has_started_printing = False  # to print LF before anything else
+
 
 def on_event_received(node, event_name, event_data):
     global has_started_printing, exit_received
@@ -128,7 +137,7 @@ def on_event_received(node, event_name, event_data):
     elif event_name == "_print":
         print_id = event_data[0]
         print_format, print_num_args = print_statements[print_id]
-        print_args = tuple(event_data[1 : 1 + print_num_args])
+        print_args = tuple(event_data[1:1 + print_num_args])
         print_str = print_format % print_args
         if not has_started_printing:
             print_to_shell("\n")
@@ -191,7 +200,7 @@ def run():
                 else:
                     print_error(f"Cannot run program (error {error['error_code']})\n")
             else:
-                print_error(f"Cannot run program\n")
+                print_error("Cannot run program\n")
             disconnect()  # to attempt to reconnect next time
         else:
             client.clear_events_received_listeners()
@@ -209,6 +218,7 @@ def run():
 
     client.run_async_program(prog)
 
+
 def stop():
     async def prog():
         error = await node.stop()
@@ -222,6 +232,7 @@ def stop():
 
     client.run_async_program(prog)
 
+
 def patch_command(command_id, patched_handler):
     """Replace the handler of a command specified by its id with a function
     patched_handler(handler).
@@ -234,6 +245,14 @@ def patch_command(command_id, patched_handler):
         }
         for c in workbench._commands
     ]
+
+
+def patch(command_id):
+    def register(fun):
+        patch_command(command_id, fun)
+        return fun
+    return register
+
 
 def load_plugin():
     get_workbench().add_command(command_id="run_th",
@@ -257,6 +276,7 @@ def load_plugin():
                                 handler=disconnect,
                                 tester=lambda: client is not None)
 
+    @patch("run_current_script")
     def patched_run_current_script(c):
         filename = get_filename()
         if filename is not None and filename.endswith(".pythii"):
@@ -264,4 +284,4 @@ def load_plugin():
         else:
             c["handler"]()
 
-    patch_command("run_current_script", patched_run_current_script)
+    # patch_command("run_current_script", patched_run_current_script)
