@@ -50,6 +50,10 @@ def get_source_code():
     source_code = str(code_view.get_content_as_bytes(), "utf-8")
     return source_code
 
+def get_filename():
+    editor = get_workbench().get_editor_notebook().get_current_editor()
+    return editor.get_filename()
+
 def print_to_shell(str, stderr=False):
     text = get_shell().text
     text._insert_text_directly(str, ("io", "stderr") if stderr else ("io",))
@@ -218,6 +222,19 @@ def stop():
 
     client.run_async_program(prog)
 
+def patch_command(command_id, patched_handler):
+    """Replace the handler of a command specified by its id with a function
+    patched_handler(handler).
+    """
+    workbench = get_workbench()
+    workbench._commands = [
+        c if c["command_id"] != command_id else {
+            **c,
+            "handler": (lambda c: lambda: patched_handler(c["handler"]))(c)
+        }
+        for c in workbench._commands
+    ]
+
 def load_plugin():
     get_workbench().add_command(command_id="run_th",
                                 menu_name="Thymio",
@@ -239,3 +256,11 @@ def load_plugin():
                                 command_label="Unlock",
                                 handler=disconnect,
                                 tester=lambda: client is not None)
+
+    def patched_run_current_script(c):
+        if get_filename().endswith(".pythii"):
+            run()
+        else:
+            c["handler"]()
+
+    patch_command("run_current_script", patched_run_current_script)
