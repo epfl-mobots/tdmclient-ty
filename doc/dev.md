@@ -5,8 +5,8 @@
 An easy way to run the current version of the plug-in without installing is to run Thonny from its package, not as the distributed application.
 First install all the required packages, except the plug-in which is found in the current directory.
 ```
-python3 -m install thonny
-python3 -m install tdmclient
+python3 -m pip install thonny
+python3 -m pip install tdmclient
 ```
 
 Then launch Thonny with
@@ -26,7 +26,7 @@ def patch_command(command_id, patched_handler):
     workbench._commands = [
         c if c["command_id"] != command_id else {
             **c,
-            "handler": (lambda c: lambda: patched_handler(c["handler"]))(c)
+            "handler": (lambda c: lambda: patched_handler(c))(c)
         }
         for c in workbench._commands
     ]

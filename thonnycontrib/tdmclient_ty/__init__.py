@@ -230,7 +230,7 @@ def patch_command(command_id, patched_handler):
     workbench._commands = [
         c if c["command_id"] != command_id else {
             **c,
-            "handler": (lambda c: lambda: patched_handler(c["handler"]))(c)
+            "handler": (lambda c: lambda: patched_handler(c))(c)
         }
         for c in workbench._commands
     ]
@@ -258,7 +258,8 @@ def load_plugin():
                                 tester=lambda: client is not None)
 
     def patched_run_current_script(c):
-        if get_filename().endswith(".pythii"):
+        filename = get_filename()
+        if filename is not None and filename.endswith(".pythii"):
             run()
         else:
             c["handler"]()
