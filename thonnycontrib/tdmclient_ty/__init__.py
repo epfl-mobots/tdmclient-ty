@@ -7,6 +7,7 @@
 
 from thonny import get_workbench, get_shell
 from thonny.common import TextRange
+import os
 
 from tdmclient import ClientAsync, aw
 from tdmclient.atranspiler import ATranspiler, TranspilerError
@@ -257,9 +258,12 @@ def patch(command_id):
 def load_plugin():
     get_workbench().add_command(command_id="run_th",
                                 menu_name="Thymio",
-                                command_label="Run",
+                                command_label="Run on Thymio",
                                 default_sequence="<Control-Shift-R>",
-                                handler=run)
+                                handler=run,
+                                caption="Run current script on Thymio",
+                                image=os.path.join(os.path.dirname(__file__), "res", "thymio.run.png"),
+                                include_in_toolbar=True)
     get_workbench().add_command(command_id="transpile_th",
                                 menu_name="Thymio",
                                 command_label="Transpile Program",
@@ -267,12 +271,15 @@ def load_plugin():
                                 handler=print_transpiled_code)
     get_workbench().add_command(command_id="stop_th",
                                 menu_name="Thymio",
-                                command_label="Stop",
+                                command_label="Stop Thymio",
                                 default_sequence="<Control-Shift-space>",
-                                handler=stop)
+                                handler=stop,
+                                caption="Stop Thymio",
+                                image=os.path.join(os.path.dirname(__file__), "res", "thymio.stop.png"),
+                                include_in_toolbar=True)
     get_workbench().add_command(command_id="unlock_th",
                                 menu_name="Thymio",
-                                command_label="Unlock",
+                                command_label="Unlock Thymio",
                                 handler=disconnect,
                                 tester=lambda: client is not None)
 

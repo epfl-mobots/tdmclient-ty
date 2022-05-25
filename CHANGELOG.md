@@ -4,6 +4,8 @@ Notable changes of tdmclient-ty. Release versions refer to [https://pypi.org/pro
 
 ## [Unreleased]
 
+- Toolbar buttons for commands _Run on Thymio_ and _Stop Thymio_
+
 ## [0.1.3] - 2022-04-05
 
 ### Added
