@@ -9,35 +9,71 @@ from thonny import get_workbench, get_shell
 from thonny.common import TextRange
 import os
 
-from tdmclient import ClientAsync, aw
+from tdmclient import ClientAsync, NodeLockError, aw
 from tdmclient.atranspiler import ATranspiler, TranspilerError
 from tdmclient.module_thymio import ModuleThymio
 from tdmclient.module_clock import ModuleClock
 from tdmclient.atranspiler_warnings import missing_global_decl
 
+import tkinter
+from tkinter import ttk
+
+
 client = None
+nodes = []
+node_default = None
 node = None
+robot_view = None
 
 
-def connect():
+def connect_tdm():
     global client, node
     if client is None:
         client = ClientAsync()
-        node = aw(client.wait_for_node(timeout=5))
-        if node is None:
-            print_error("Cannot connect to robot")
-            client = None
-            return
+
+        def on_nodes_changed(node_list):
+            print("on_nodes_changed", node_list)
+            global nodes, node, node_default
+            nodes = [
+                node
+                for node in node_list
+                if node.status != ClientAsync.NODE_STATUS_DISCONNECTED
+            ]
+            if node not in node_list:
+                node = None
+            if node_default not in node_list:
+                node_default = node or (node_list[0] if len(node_list) > 0 else None)
+            if robot_view is not None:
+                robot_view.update_nodes(nodes)
+
+        client.on_nodes_changed = on_nodes_changed
+        global node_default
+        node_default = aw(client.wait_for_node(timeout=5))
+        if node_default is not None:
+            # refresh target node in node list
+            if robot_view is not None:
+                robot_view.update_nodes(nodes)
+
+
+def connect():
+    connect_tdm()
+    global node
+    node = node_default if robot_view is None else client.first_node(node_id=robot_view.selected_node_id)
+    if node is None:
+        print_error("Cannot connect to robot\n")
+        return
+    try:
         aw(node.lock())
         get_workbench().after(100, process_incoming_messages)  # schedule after 100 ms
+    except NodeLockError:
+        node = None
 
 
 def disconnect():
-    global client, node
-    if client is not None:
+    global node
+    if node is not None:
         aw(node.unlock())
         node = None
-        client = None
 
 
 def process_incoming_messages():
@@ -182,7 +218,7 @@ def run():
 
     # make sure we're connected
     connect()
-    if client is None:
+    if node is None:
         return
 
     # run
@@ -255,6 +291,92 @@ def patch(command_id):
     return register
 
 
+class RobotView(ttk.Frame):
+
+    def __init__(self, parent, *args, **kwargs):
+        ttk.Frame.__init__(self, parent, *args, **kwargs)
+        #self.pack()
+
+        self.selected_node_id = None
+
+        self.canvas = tkinter.Canvas(self)
+        self.canvas.pack(fill=tkinter.BOTH, expand=True);
+
+        # vertical scrollbar
+        self.scrollbar = ttk.Scrollbar(self.canvas)
+        self.scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y, expand=False)
+
+        # table
+        self.table = ttk.Treeview(self.canvas, yscrollcommand=self.scrollbar.set)
+        self.table.pack(fill=tkinter.BOTH, expand=True)
+        self.table["columns"] = ("selected", "name", "status")
+        self.table.column("#0", width=0, stretch=tkinter.NO)
+        self.table.column("selected", anchor=tkinter.W, width=20, stretch=False)
+        self.table.column("name", anchor=tkinter.W, width=80)
+        self.table.column("status", anchor=tkinter.W, width=80)
+        self.table.heading("#0", text="", anchor=tkinter.W)
+        self.table.heading("selected", text="", anchor=tkinter.W)
+        self.table.heading("name", text="Name", anchor=tkinter.W)
+        self.table.heading("status", text="Status", anchor=tkinter.W)
+
+        connect_tdm()
+        self.update_nodes(nodes)
+
+        def on_select_row(_):
+            disconnect()
+            selected_node_id = self.table.item(self.table.focus())["text"]
+            if selected_node_id:  # guard against double-click
+                self.selected_node_id = selected_node_id
+            self.update_nodes(nodes)
+
+        self.table.bind("<ButtonRelease-1>", on_select_row)
+
+        # set reference to self
+        global robot_view
+        robot_view = self
+
+        def process_tdm_messages():
+            if client is not None:
+                client.process_waiting_messages()
+            self.after(100, process_tdm_messages)
+
+        process_tdm_messages()
+
+    def clear(self):
+        for item in self.table.get_children():
+            self.table.delete(item)
+
+    def add_node(self, node1):
+        if "name" not in node1.props or node1.status == ClientAsync.NODE_STATUS_DISCONNECTED:
+            return
+        selected = (
+            node1 == node if node is not None
+            else node1.id_str == self.selected_node_id if self.selected_node_id is not None
+            else node1 == node_default
+        )
+        status_str = {
+            ClientAsync.NODE_STATUS_UNKNOWN: "unknown",
+            ClientAsync.NODE_STATUS_CONNECTED: "connected",
+            ClientAsync.NODE_STATUS_AVAILABLE: "available",
+            ClientAsync.NODE_STATUS_BUSY: "busy",
+            ClientAsync.NODE_STATUS_READY: "ready",
+            ClientAsync.NODE_STATUS_DISCONNECTED: "disconnected",
+        }[node1.status]
+        self.table.insert(parent="", index="end", text=node1.id_str,
+                          values=(
+                              "\u2713" if selected else "",
+                              node1.props["name"] if "name" in node1.props else node1.id_str,
+                              status_str
+                          ))
+
+    def update_nodes(self, nodes):
+        self.clear()
+        for node1 in nodes:
+            self.add_node(node1)
+
+    def selected_node(self):
+        pass
+
 def load_plugin():
     get_workbench().add_command(command_id="run_th",
                                 menu_name="Thymio",
@@ -282,6 +404,8 @@ def load_plugin():
                                 command_label="Unlock Thymio",
                                 handler=disconnect,
                                 tester=lambda: client is not None)
+
+    get_workbench().add_view(RobotView, "Thymio Robots", "se", default_position_key="zz")
 
     @patch("run_current_script")
     def patched_run_current_script(c):
