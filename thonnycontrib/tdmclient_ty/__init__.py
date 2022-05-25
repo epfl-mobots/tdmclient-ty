@@ -235,7 +235,7 @@ def stop():
 
 def patch_command(command_id, patched_handler):
     """Replace the handler of a command specified by its id with a function
-    patched_handler(handler).
+    patched_handler(c), where c is the command dict.
     """
     workbench = get_workbench()
     workbench._commands = [
@@ -284,4 +284,10 @@ def load_plugin():
         else:
             c["handler"]()
 
-    # patch_command("run_current_script", patched_run_current_script)
+    @patch("restart")
+    def patched_restart(c):
+        filename = get_filename()
+        if filename is not None and filename.endswith(".pythii"):
+            stop()
+        else:
+            c["handler"]()
