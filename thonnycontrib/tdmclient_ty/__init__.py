@@ -29,10 +29,9 @@ robot_view = None
 def connect_tdm():
     global client, node
     if client is None:
-        client = ClientAsync()
+        client = ClientAsync(tdm_port=ClientAsync.DEFAULT_TDM_PORT)
 
         def on_nodes_changed(node_list):
-            print("on_nodes_changed", node_list)
             global nodes, node, node_default
             nodes = [
                 node

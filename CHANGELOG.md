@@ -9,6 +9,10 @@ Notable changes of tdmclient-ty. Release versions refer to [https://pypi.org/pro
 - Toolbar buttons for commands _Run on Thymio_ and _Stop Thymio_
 - Robot panel (menu View > Thymio Robots)
 
+## Changed
+
+- Connection to local TDM instead of TDM advertised by zeroconf
+
 ## [0.1.3] - 2022-04-05
 
 ### Added
