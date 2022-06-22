@@ -22,6 +22,11 @@ setup(
     install_requires=[
         "tdmclient",
     ],
+    package_data={
+        "thonnycontrib.tdmclient_ty": [
+            "res/*",
+        ],
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: BSD License",
