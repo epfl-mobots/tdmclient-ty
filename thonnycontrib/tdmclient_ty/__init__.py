@@ -376,7 +376,12 @@ class RobotView(ttk.Frame):
     def selected_node(self):
         pass
 
+
 def load_plugin():
+    # unload function
+    get_workbench().bind("WorkbenchClose", unload_plugin, True)
+
+    # add commands in menus and toolbar
     get_workbench().add_command(command_id="run_th",
                                 menu_name="Thymio",
                                 command_label="Run on Thymio",
@@ -404,8 +409,10 @@ def load_plugin():
                                 handler=disconnect,
                                 tester=lambda: client is not None)
 
+    # add view
     get_workbench().add_view(RobotView, "Thymio Robots", "se", default_position_key="zz")
 
+    # patch commands to run and stop .pythii scripts on the Thymio
     @patch("run_current_script")
     def patched_run_current_script(c):
         filename = get_filename()
@@ -421,3 +428,10 @@ def load_plugin():
             stop()
         else:
             c["handler"]()
+
+
+def unload_plugin(event=None):
+    global client
+    if client is not None:
+        client.disconnect()
+        client = None
