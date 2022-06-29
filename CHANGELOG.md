@@ -4,6 +4,8 @@ Notable changes of tdmclient-ty. Release versions refer to [https://pypi.org/pro
 
 ## [Unreleased]
 
+## [0.1.5] - 2022-06-29
+
 ### Fixed
 
 - Connection to TDM is closed explicitly when quitting Thonny
