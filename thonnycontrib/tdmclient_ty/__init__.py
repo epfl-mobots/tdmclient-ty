@@ -29,30 +29,34 @@ robot_view = None
 def connect_tdm():
     global client, node
     if client is None:
-        client = ClientAsync(tdm_port=ClientAsync.DEFAULT_TDM_PORT)
+        try:
+            client = ClientAsync(tdm_port=ClientAsync.DEFAULT_TDM_PORT)
 
-        def on_nodes_changed(node_list):
-            global nodes, node, node_default
-            nodes = [
-                node
-                for node in node_list
-                if node.status != ClientAsync.NODE_STATUS_DISCONNECTED
-            ]
-            if node not in node_list:
-                node = None
-            if node_default not in node_list:
-                node_default = node or (node_list[0] if len(node_list) > 0 else None)
-            if robot_view is not None:
-                robot_view.update_nodes(nodes)
+            def on_nodes_changed(node_list):
+                global nodes, node, node_default
+                nodes = [
+                    node
+                    for node in node_list
+                    if node.status != ClientAsync.NODE_STATUS_DISCONNECTED
+                ]
+                if node not in node_list:
+                    node = None
+                if node_default not in node_list:
+                    node_default = node or (node_list[0] if len(node_list) > 0 else None)
+                if robot_view is not None:
+                    robot_view.update_nodes(nodes)
 
-        client.on_nodes_changed = on_nodes_changed
-        global node_default
-        node_default = aw(client.wait_for_node(timeout=5))
-        if node_default is not None:
-            # refresh target node in node list
-            if robot_view is not None:
-                robot_view.update_nodes(nodes)
-
+            client.on_nodes_changed = on_nodes_changed
+            global node_default
+            node_default = aw(client.wait_for_node(timeout=5))
+            if node_default is not None:
+                # refresh target node in node list
+                if robot_view is not None:
+                    robot_view.update_nodes(nodes)
+        except ConnectionRefusedError:
+            client = None
+            node_default = None
+            node = None
 
 def connect():
     connect_tdm()
@@ -387,6 +391,7 @@ def load_plugin():
                                 command_label="Run on Thymio",
                                 default_sequence="<Control-Shift-R>",
                                 handler=run,
+                                tester = lambda: node is not None,
                                 caption="Run current script on Thymio",
                                 image=os.path.join(os.path.dirname(__file__), "res", "thymio.run.png"),
                                 include_in_toolbar=True)
@@ -400,6 +405,7 @@ def load_plugin():
                                 command_label="Stop Thymio",
                                 default_sequence="<Control-Shift-space>",
                                 handler=stop,
+                                tester = lambda: node is not None,
                                 caption="Stop Thymio",
                                 image=os.path.join(os.path.dirname(__file__), "res", "thymio.stop.png"),
                                 include_in_toolbar=True)
@@ -407,7 +413,7 @@ def load_plugin():
                                 menu_name="Thymio",
                                 command_label="Unlock Thymio",
                                 handler=disconnect,
-                                tester=lambda: client is not None)
+                                tester = lambda: node is not None)
 
     # add view
     get_workbench().add_view(RobotView, "Thymio Robots", "se", default_position_key="zz")
