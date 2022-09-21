@@ -4,9 +4,11 @@ Notable changes of tdmclient-ty. Release versions refer to [https://pypi.org/pro
 
 ## [Unreleased]
 
+## [0.1.6] - 2022-09-21
+
 ### Fixed
 
-- No more error when the TDM isn't running.
+- No more error when TDM isn't running.
 
 ## [0.1.5] - 2022-06-29
 
