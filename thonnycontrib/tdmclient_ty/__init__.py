@@ -278,7 +278,7 @@ def stop():
             disconnect()  # to attempt to reconnect next time
 
     connect()
-    if client is None:
+    if client is None or node is None:
         return
 
     client.run_async_program(prog)
