@@ -24,6 +24,7 @@ nodes = []
 node_default = None
 node = None
 robot_view = None
+unloading = False
 
 
 def connect_tdm():
@@ -39,12 +40,13 @@ def connect_tdm():
                     for node in node_list
                     if node.status != ClientAsync.NODE_STATUS_DISCONNECTED
                 ]
-                if node not in node_list:
+                if node not in nodes:
                     node = None
-                if node_default not in node_list:
-                    node_default = node or (node_list[0] if len(node_list) > 0 else None)
+                if node_default not in nodes:
+                    node_default = nodes[0] if len(nodes) > 0 else None
                 if robot_view is not None:
                     robot_view.update_nodes(nodes)
+                print(f"end of on_nodes_changed: node_default={node_default}\n")
 
             client.on_nodes_changed = on_nodes_changed
             global node_default
@@ -58,18 +60,27 @@ def connect_tdm():
             node_default = None
             node = None
 
-def connect():
+
+def connect(lock=True):
     connect_tdm()
     global node
-    node = node_default if robot_view is None else client.first_node(node_id=robot_view.selected_node_id)
-    if node is None:
-        print_error("Cannot connect to robot\n")
-        return
-    try:
-        aw(node.lock())
-        get_workbench().after(100, process_incoming_messages)  # schedule after 100 ms
-    except NodeLockError:
-        node = None
+    node = None if client is None else node_default if robot_view is None else client.first_node(node_id=robot_view.selected_node_id)
+    if lock:
+        if node is None:
+            print_error("Cannot connect to robot\n")
+            return
+        try:
+            aw(node.lock())
+            get_workbench().after(100, process_incoming_messages)  # schedule after 100 ms
+        except NodeLockError:
+            node = None
+
+
+def periodic_connect():
+    if not unloading:
+        connect(lock=False)
+        get_workbench()._update_toolbar()
+        get_workbench().after(500, periodic_connect)  # reschedule after 500 ms
 
 
 def disconnect():
@@ -355,7 +366,7 @@ class RobotView(ttk.Frame):
         selected = (
             node1 == node if node is not None
             else node1.id_str == self.selected_node_id if self.selected_node_id is not None
-            else node1 == node_default
+            else node1.id_str == node_default.id_str
         )
         status_str = {
             ClientAsync.NODE_STATUS_UNKNOWN: "unknown",
@@ -435,9 +446,13 @@ def load_plugin():
         else:
             c["handler"]()
 
+    get_workbench().after(1000, periodic_connect)  # schedule after 1 s
+
 
 def unload_plugin(event=None):
     global client
     if client is not None:
+        global unloading
+        unloading = True  # prevent periodic_connect
         client.disconnect()
         client = None
