@@ -4,6 +4,8 @@ Notable changes of tdmclient-ty. Release versions refer to [https://pypi.org/pro
 
 ## [Unreleased]
 
+## [0.1.7] - 2022-10-17
+
 ### Fixed
 
 - State of run and stop buttons updated when the robot is connected or disconnected

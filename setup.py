@@ -12,7 +12,7 @@ with open("doc/help.md", "r") as f:
 
 setup(
     name="tdmclient-ty",
-    version="0.1.6",
+    version="0.1.7",
     author="Yves Piguet",
     packages=["thonnycontrib.tdmclient_ty"],
     description="Communication with Thymio II robot from Thonny via the Thymio Device Manager",
