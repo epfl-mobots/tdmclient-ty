@@ -24,7 +24,6 @@ nodes = []
 node_default = None
 node = None
 robot_view = None
-unloading = False
 
 
 def connect_tdm():
@@ -56,6 +55,7 @@ def connect_tdm():
                 if robot_view is not None:
                     robot_view.update_nodes(nodes)
         except ConnectionRefusedError:
+            print("ConnectionRefusedError")
             client = None
             node_default = None
             node = None
@@ -74,13 +74,7 @@ def connect(lock=True):
             get_workbench().after(100, process_incoming_messages)  # schedule after 100 ms
         except NodeLockError:
             node = None
-
-
-def periodic_connect():
-    if not unloading:
-        connect(lock=False)
-        get_workbench()._update_toolbar()
-        get_workbench().after(500, periodic_connect)  # reschedule after 500 ms
+    get_workbench()._update_toolbar()
 
 
 def disconnect():
@@ -405,12 +399,14 @@ def load_plugin():
                                 tester = lambda: node is not None,
                                 caption="Run current script on Thymio",
                                 image=os.path.join(os.path.dirname(__file__), "res", "thymio.run.png"),
-                                include_in_toolbar=True)
+                                include_in_toolbar=True,
+                                group=10)
     get_workbench().add_command(command_id="transpile_th",
                                 menu_name="Thymio",
                                 command_label="Transpile Program",
                                 default_sequence="<Control-Shift-T>",
-                                handler=print_transpiled_code)
+                                handler=print_transpiled_code,
+                                group=10)
     get_workbench().add_command(command_id="stop_th",
                                 menu_name="Thymio",
                                 command_label="Stop Thymio",
@@ -419,12 +415,20 @@ def load_plugin():
                                 tester = lambda: node is not None,
                                 caption="Stop Thymio",
                                 image=os.path.join(os.path.dirname(__file__), "res", "thymio.stop.png"),
-                                include_in_toolbar=True)
+                                include_in_toolbar=True,
+                                group=10)
+    get_workbench().add_command(command_id="connect",
+                                menu_name="Thymio",
+                                command_label="Connect To Thymio",
+                                handler=connect,
+                                tester = lambda: node is None,
+                                group=20)
     get_workbench().add_command(command_id="unlock_th",
                                 menu_name="Thymio",
-                                command_label="Unlock Thymio",
+                                command_label="Disconnect From Thymio",
                                 handler=disconnect,
-                                tester = lambda: node is not None)
+                                tester = lambda: node is not None,
+                                group=20)
 
     # add view
     get_workbench().add_view(RobotView, "Thymio Robots", "se", default_position_key="zz")
@@ -446,13 +450,10 @@ def load_plugin():
         else:
             c["handler"]()
 
-    get_workbench().after(1000, periodic_connect)  # schedule after 1 s
-
+    get_workbench().after(1000, connect)  # schedule after 1 s
 
 def unload_plugin(event=None):
     global client
     if client is not None:
-        global unloading
-        unloading = True  # prevent periodic_connect
         client.disconnect()
         client = None
