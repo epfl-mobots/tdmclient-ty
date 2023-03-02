@@ -1,5 +1,5 @@
 # This file is part of tdmclient-ty
-# Copyright 2021-2022 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE,
+# Copyright 2021-2023 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE,
 # Miniature Mobile Robots group, Switzerland
 # Author: Yves Piguet
 #
@@ -12,7 +12,7 @@ with open("doc/help.md", "r") as f:
 
 setup(
     name="tdmclient-ty",
-    version="0.1.7",
+    version="0.1.8",
     author="Yves Piguet",
     packages=["thonnycontrib.tdmclient_ty"],
     description="Communication with Thymio II robot from Thonny via the Thymio Device Manager",

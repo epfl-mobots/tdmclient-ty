@@ -4,6 +4,8 @@ Notable changes of tdmclient-ty. Release versions refer to [https://pypi.org/pro
 
 ## [Unreleased]
 
+## [0.1.8] - 2023-03-02
+
 ### Fixed
 
 - When the connection to the TDM fails at launch, periodic attempt to reconnect has been suppressed. It froze the GUI for 2 seconds. It has been replaced with a menu entry "Connect to Thymio" in the "Thymio" menu.
