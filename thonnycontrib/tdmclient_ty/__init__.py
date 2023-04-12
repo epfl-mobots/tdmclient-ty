@@ -61,13 +61,14 @@ def connect_tdm():
             node = None
 
 
-def connect(lock=True):
+def connect(lock=True, hide_connection_error=False):
     connect_tdm()
     global node
     node = None if client is None else node_default if robot_view is None else client.first_node(node_id=robot_view.selected_node_id)
     if lock:
         if node is None:
-            print_error("Cannot connect to robot\n")
+            if not hide_connection_error:
+                print_error("Cannot connect to robot\n")
             return
         try:
             aw(node.lock())
@@ -450,7 +451,9 @@ def load_plugin():
         else:
             c["handler"]()
 
-    get_workbench().after(1000, connect)  # schedule after 1 s
+    # schedule connection after 1 s
+    get_workbench().after(1000,
+                          lambda: connect(hide_connection_error=True))
 
 def unload_plugin(event=None):
     global client
