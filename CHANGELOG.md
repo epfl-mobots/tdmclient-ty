@@ -4,6 +4,8 @@ Notable changes of tdmclient-ty. Release versions refer to [https://pypi.org/pro
 
 ## [Unreleased]
 
+## [0.1.9] - 2023-04-24
+
 ### Fixed
 
 - When the automatic connection on launch fails, usually because the TDM isn't running and Thonny is started for plain Python without robot, an error message isn't displayed anymore.
